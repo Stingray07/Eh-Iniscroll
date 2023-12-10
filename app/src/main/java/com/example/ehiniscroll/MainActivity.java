@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.HorizontalScrollView;
+import android.widget.ScrollView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -17,13 +17,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // initialize views
+//        // initialize views
         Button startButton = findViewById(R.id.startButton);
         Button stopButton = findViewById(R.id.stopButton);
         ProgressBar linkingBar = findViewById(R.id.loadingProgressBar);
-        HorizontalScrollView horizontalScrollView = findViewById(R.id.horizontalScrollView);
-
-
+        ScrollView verticalScrollView = findViewById(R.id.verticalScrollView);
+//
+//
         startButton.setOnClickListener(v -> {
             showToast("Initializing Link");
             startButton.setVisibility(View.INVISIBLE);
@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
 
             linkingBar.setVisibility(View.INVISIBLE);
+            System.out.println("Link Started");
         });
 
         stopButton.setOnClickListener(v -> {
@@ -45,16 +46,19 @@ public class MainActivity extends AppCompatActivity {
             stopButton.setVisibility(View.INVISIBLE);
 
             showToast("Link Stopped");
+            System.out.println("Link Stopped");
         });
 
-        horizontalScrollView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+        verticalScrollView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                if (scrollX != oldScrollX) {
-                    System.out.println("Im scrolling");
+                // Check if there is a vertical scroll
+                if (scrollY != oldScrollY) {
+                    System.out.println("ScrollDetection Vertical scroll detected. ScrollY: " + scrollY);
                 }
             }
         });
+
     }
 
 
