@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Eh Iniscroll</string>
+    <string name="input_ip_address_here">Input IP Address here</string>
+    <string name="click_to_start_link">Click To Start Link</string>
+    <string name="click_to_stop_link">Click to Stop Link</string>
 </resources>
