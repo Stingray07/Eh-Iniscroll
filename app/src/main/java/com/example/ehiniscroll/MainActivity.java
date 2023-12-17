@@ -19,6 +19,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        WebSocketClient client = new WebSocketClient();
+        client.test();
+
         // create views
         Button startButton = findViewById(R.id.startButton);
         Button stopButton = findViewById(R.id.stopButton);
@@ -96,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         ipAddressBox.setVisibility(View.INVISIBLE);
         connectedTextView.setText(
                 "Connected to " + ipAddress + "\n " +
-                "You can now scroll\n Don't worry, I'll catch up 😉");
+                "You can now scroll");
         connectedTextView.setVisibility(View.VISIBLE);
         linkingBar.setVisibility(View.INVISIBLE);
         System.out.println("Link Started");

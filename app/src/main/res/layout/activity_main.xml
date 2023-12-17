@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -39,25 +39,6 @@
                 android:layout_marginTop="16dp"/>
 
             <TextView
-                android:id="@+id/connectedTextView"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:visibility="invisible"/>
-
-            <Button
-                android:id="@+id/stopButton"
-                android:layout_gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="100dp"
-                android:text="@string/click_to_stop_link"
-                android:visibility="invisible"
-                app:layout_constraintTop_toBottomOf="@+id/startButton"
-                android:layout_marginTop="16dp" />
-
-            <TextView
                 android:id="@+id/invisibleTextView"
                 android:layout_width="match_parent"
                 android:layout_height="10000dp"
@@ -75,4 +56,24 @@
 
         </LinearLayout>
     </ScrollView>
-</LinearLayout>
+
+    <TextView
+        android:id="@+id/connectedTextView"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:visibility="invisible"/>
+
+    <Button
+        android:id="@+id/stopButton"
+        android:layout_gravity="bottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/click_to_stop_link"
+        android:visibility="invisible"
+        app:layout_constraintTop_toBottomOf="@+id/startButton"
+        android:layout_marginTop="16dp" />
+
+</FrameLayout>
