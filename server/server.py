@@ -1,24 +1,18 @@
 import asyncio
 import websockets
 
-async def handle_client(websocket):
-    print('function')
 
-    try:
-        print(f"Client connected from {websocket.remote_address}")
-
-        while True:
-            message = await websocket.recv()
-            print(f"Received message: {message}")
-
-            response = f"Server received: {message}"
-            await websocket.send(response)
-
-    except websockets.exceptions.ConnectionClosedOK:
-        print(f"Client {websocket.remote_address} disconnected.")
+async def handler(websocket):
+    while True:
+        message = await websocket.recv()
+        print(message)
+        await websocket.send(f"message from server: {message}")
 
 
-start_server = websockets.serve(handle_client, 'localhost', 3000)
+async def main():
+    async with websockets.serve(handler, "localhost", 8001):
+        await asyncio.Future()  # run forever
 
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_forever()
+
+if __name__ == "__main__":
+    asyncio.run(main())

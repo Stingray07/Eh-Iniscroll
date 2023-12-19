@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
 
         WebSocketClient client = new WebSocketClient();
         client.test();
+        client.connectToServer("localhost:8001");
 
         // create views
         Button startButton = findViewById(R.id.startButton);
