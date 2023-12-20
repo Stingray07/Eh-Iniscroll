@@ -11,6 +11,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,7 +24,13 @@ public class MainActivity extends AppCompatActivity {
 
         WebSocketClient client = new WebSocketClient();
         client.test();
-        client.connectToServer("localhost:8001");
+        try {
+            URI serverURI = new URI("ws://localhost:8001");
+            client.connectToServer(serverURI);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
 
         // create views
         Button startButton = findViewById(R.id.startButton);

@@ -2,6 +2,8 @@ package com.example.ehiniscroll;
 
 import java.net.URI;
 import javax.websocket.*;
+import android.os.AsyncTask;
+
 
 @ClientEndpoint
 public class WebSocketClient {
@@ -21,13 +23,10 @@ public class WebSocketClient {
         System.out.println("Message came from server! " + message);
     }
 
-    public void connectToServer(String uri_param){
+    public void connectToServer(URI endpointURI){
         try {
-            URI uri = new URI(uri_param);
-
-            javax.websocket.WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-
-            container.connectToServer(WebSocketClient.class, uri);
+           WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+           container.connectToServer(this, endpointURI);
 
         } catch (Exception e) {
             e.printStackTrace();

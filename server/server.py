@@ -3,6 +3,8 @@ import websockets
 
 
 async def handler(websocket):
+    print("Client Connected")
+
     while True:
         message = await websocket.recv()
         print(message)
