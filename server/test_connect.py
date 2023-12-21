@@ -2,7 +2,7 @@ import asyncio
 import websockets
 
 async def connect_to_server():
-    uri = "ws://localhost:8001"  # Replace with your WebSocket server's URI
+    uri = "ws://IP ADDRESS:3000"  # Replace with your WebSocket server's URI
 
     async with websockets.connect(uri) as websocket:
         print(f"Connected to {uri}")

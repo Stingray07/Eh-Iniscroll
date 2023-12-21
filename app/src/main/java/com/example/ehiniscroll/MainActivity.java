@@ -22,11 +22,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        WebSocketClient client = new WebSocketClient();
-        client.test();
+        //connect to WS
         try {
-            URI serverURI = new URI("ws://localhost:8001");
-            client.connectToServer(serverURI);
+            URI serverURI = new URI("ws://IP ADDRESS:3000");
+
+            Thread test_thread = new Thread( new WebSocketClient(serverURI) );
+            test_thread.start();
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
             showToast("Link Stopped");
             System.out.println("Link Stopped");
+            verticalScrollView.fullScroll(ScrollView.FOCUS_UP);
         });
 
         verticalScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {

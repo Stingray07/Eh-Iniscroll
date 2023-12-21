@@ -2,15 +2,20 @@ package com.example.ehiniscroll;
 
 import java.net.URI;
 import javax.websocket.*;
-import android.os.AsyncTask;
-
 
 @ClientEndpoint
-public class WebSocketClient {
+public class WebSocketClient implements Runnable {
     public void test()  {
         System.out.println("TEST");
 
     }
+
+    private URI uri;
+
+    public WebSocketClient(URI uri) {
+        this.uri = uri;
+    }
+
 
     @OnOpen
     public void onOpen(Session session) {
@@ -24,6 +29,7 @@ public class WebSocketClient {
     }
 
     public void connectToServer(URI endpointURI){
+
         try {
            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
            container.connectToServer(this, endpointURI);
@@ -31,5 +37,11 @@ public class WebSocketClient {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void run() {
+        test();
+        connectToServer(uri);
     }
 }
