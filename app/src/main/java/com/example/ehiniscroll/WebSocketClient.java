@@ -9,8 +9,9 @@ public class WebSocketClient implements Runnable {
         System.out.println("TEST");
 
     }
+    Session userSession = null;
 
-    private URI uri;
+    private final URI uri;
 
     public WebSocketClient(URI uri) {
         this.uri = uri;
@@ -18,10 +19,16 @@ public class WebSocketClient implements Runnable {
 
 
     @OnOpen
-    public void onOpen(Session session) {
+    public void onOpen(Session usersession) {
         System.out.println("Connected to WebSocket Server");
+        this.userSession = usersession;
     }
 
+    @OnClose
+    public void onClose(Session userSession, CloseReason reason) {
+        System.out.println("Closed WebSocket");
+        this.userSession = null;
+    }
 
     @OnMessage
     public void onMessage(String message, Session session) {
@@ -39,9 +46,14 @@ public class WebSocketClient implements Runnable {
         }
     }
 
+    public void sendMessage() {
+        this.userSession.getAsyncRemote().sendText("TEST MESSAGE");
+    }
+
     @Override
     public void run() {
         test();
         connectToServer(uri);
+        sendMessage();
     }
 }

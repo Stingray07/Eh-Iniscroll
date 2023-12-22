@@ -22,16 +22,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //connect to WS
-        try {
-            URI serverURI = new URI("ws://IP ADDRESS:3000");
-
-            Thread test_thread = new Thread( new WebSocketClient(serverURI) );
-            test_thread.start();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-
 
         // create views
         Button startButton = findViewById(R.id.startButton);
@@ -47,6 +37,15 @@ public class MainActivity extends AppCompatActivity {
             showToast("Initializing Link");
             setViewToConnecting(startButton, linkingBar, stopButton);
             // wifi logic here
+
+            try {
+                URI serverURI = new URI("ws://"+ ipAddress);
+
+                Thread test_thread = new Thread( new WebSocketClient(serverURI) );
+                test_thread.start();
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
 
             setViewToConnected(
                     ipAddressBox,
@@ -70,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
             // Check if there is a vertical scroll
             if (scrollY != oldScrollY) {
                 System.out.println("ScrollDetection Vertical scroll detected. ScrollY: " + scrollY);
+
             }
 
             if (scrollY >= 22000) {

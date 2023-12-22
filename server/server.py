@@ -1,5 +1,8 @@
 import asyncio
+import os
+
 import websockets
+from dotenv import load_dotenv
 
 
 async def handler(websocket):
@@ -12,7 +15,12 @@ async def handler(websocket):
 
 
 async def main():
-    async with websockets.serve(handler, 'IP ADDRESS', 3000):
+    load_dotenv()
+    IP_ADDRESS = os.getenv('IP_ADDRESS')
+    PORT = 3001
+
+    async with websockets.serve(handler, IP_ADDRESS, PORT):
+        print("SERVER STARTED")
         await asyncio.Future()  # run forever
 
 
