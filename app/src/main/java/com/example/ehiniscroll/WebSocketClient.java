@@ -2,6 +2,7 @@ package com.example.ehiniscroll;
 
 import java.net.URI;
 import javax.websocket.*;
+import java.util.concurrent.CountDownLatch;
 
 @ClientEndpoint
 public class WebSocketClient implements Runnable {
@@ -11,8 +12,8 @@ public class WebSocketClient implements Runnable {
     }
     Session userSession = null;
 
-    private final URI uri;
-
+    public final URI uri;
+    private final CountDownLatch latch = new CountDownLatch(1);
     public WebSocketClient(URI uri) {
         this.uri = uri;
     }
@@ -20,8 +21,9 @@ public class WebSocketClient implements Runnable {
 
     @OnOpen
     public void onOpen(Session usersession) {
-        System.out.println("Connected to WebSocket Server");
         this.userSession = usersession;
+        latch.countDown();
+        System.out.println("Connected to WebSocket Server");
     }
 
     @OnClose
@@ -47,7 +49,19 @@ public class WebSocketClient implements Runnable {
     }
 
     public void sendMessage() {
-        this.userSession.getAsyncRemote().sendText("TEST MESSAGE");
+        try {
+            // Wait until the WebSocket connection is open
+            latch.await();
+
+            if (userSession != null && userSession.isOpen()) {
+                userSession.getAsyncRemote().sendText("send text function");
+            } else {
+                System.out.println("WebSocket session is not open");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            e.printStackTrace();
+        }
     }
 
     @Override

@@ -41,8 +41,11 @@ public class MainActivity extends AppCompatActivity {
             try {
                 URI serverURI = new URI("ws://"+ ipAddress);
 
-                Thread test_thread = new Thread( new WebSocketClient(serverURI) );
+                WebSocketClient webSocketClient =  new WebSocketClient(serverURI);
+                Thread test_thread = new Thread(webSocketClient);
+                webSocketClient.sendMessage();
                 test_thread.start();
+
             } catch (URISyntaxException e) {
                 throw new RuntimeException(e);
             }

@@ -17,10 +17,10 @@ async def handler(websocket):
 async def main():
     load_dotenv()
     IP_ADDRESS = os.getenv('IP_ADDRESS')
-    PORT = 3001
+    PORT = 3000
 
     async with websockets.serve(handler, IP_ADDRESS, PORT):
-        print("SERVER STARTED")
+        print("SERVER STARTED: RUNNING AT PORT 3000")
         await asyncio.Future()  # run forever
 
 
