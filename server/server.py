@@ -20,7 +20,7 @@ async def main():
     PORT = 3000
 
     async with websockets.serve(handler, IP_ADDRESS, PORT):
-        print("SERVER STARTED: RUNNING AT PORT 3000")
+        print(f"SERVER STARTED: RUNNING AT PORT {PORT}")
         await asyncio.Future()  # run forever
 
 

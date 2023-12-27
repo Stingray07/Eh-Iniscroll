@@ -13,15 +13,25 @@ import android.widget.Toast;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 public class MainActivity extends AppCompatActivity {
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        URI dummyURI = null;
+        try {
+            dummyURI = new URI("192.168.100");
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+        WebSocketClient webSocketClient = new WebSocketClient(dummyURI);
+        BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
 
         // create views
         Button startButton = findViewById(R.id.startButton);
@@ -36,14 +46,12 @@ public class MainActivity extends AppCompatActivity {
             String ipAddress = ipAddressBox.getText().toString();
             showToast("Initializing Link");
             setViewToConnecting(startButton, linkingBar, stopButton);
-            // wifi logic here
 
             try {
                 URI serverURI = new URI("ws://"+ ipAddress);
 
-                WebSocketClient webSocketClient =  new WebSocketClient(serverURI);
-                Thread test_thread = new Thread(webSocketClient);
-                webSocketClient.sendMessage();
+                webSocketClient.setUri(serverURI);
+                Thread test_thread = new Thread(() -> webSocketClient.connectToServer(serverURI));
                 test_thread.start();
 
             } catch (URISyntaxException e) {
@@ -56,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
                     linkingBar,
                     invisibleTextView,
                     ipAddress);
+
+            startMessageSendingThread(messageQueue, webSocketClient);
         });
 
         stopButton.setOnClickListener(v -> {
@@ -64,15 +74,20 @@ public class MainActivity extends AppCompatActivity {
             setViewsToMain(startButton, stopButton, connectedTextView, ipAddressBox);
 
             showToast("Link Stopped");
-            System.out.println("Link Stopped");
             verticalScrollView.fullScroll(ScrollView.FOCUS_UP);
         });
 
+        URI finalDummyURI = dummyURI;
+
         verticalScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             // Check if there is a vertical scroll
-            if (scrollY != oldScrollY) {
+            if (scrollY != oldScrollY && webSocketClient.uri != finalDummyURI) {
                 System.out.println("ScrollDetection Vertical scroll detected. ScrollY: " + scrollY);
-
+                try {
+                    messageQueue.put("SOMETHING");
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
             if (scrollY >= 22000) {
@@ -82,6 +97,24 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void startMessageSendingThread(BlockingQueue<String> messageQueue, WebSocketClient webSocketClient) {
+        // Start a background thread for sending messages
+        Thread messageSendingThread = new Thread(() -> {
+            while (true) {
+                try {
+
+                    String message = messageQueue.take();
+                    if (message != null)  {
+                        webSocketClient.sendMessage();
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    e.printStackTrace();
+                }
+            }
+        });
+        messageSendingThread.start();
+    }
 
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
@@ -117,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
                 "You can now scroll");
         connectedTextView.setVisibility(View.VISIBLE);
         linkingBar.setVisibility(View.INVISIBLE);
-        System.out.println("Link Started");
         invisibleTextView.setVisibility(View.VISIBLE);
     }
 }

@@ -12,7 +12,7 @@ public class WebSocketClient implements Runnable {
     }
     Session userSession = null;
 
-    public final URI uri;
+    public URI uri;
     private final CountDownLatch latch = new CountDownLatch(1);
     public WebSocketClient(URI uri) {
         this.uri = uri;
@@ -48,13 +48,17 @@ public class WebSocketClient implements Runnable {
         }
     }
 
+    public void setUri(URI newURI){
+        this.uri = newURI;
+    }
+
     public void sendMessage() {
         try {
             // Wait until the WebSocket connection is open
             latch.await();
 
             if (userSession != null && userSession.isOpen()) {
-                userSession.getAsyncRemote().sendText("send text function");
+                userSession.getAsyncRemote().sendText("TEST");
             } else {
                 System.out.println("WebSocket session is not open");
             }
