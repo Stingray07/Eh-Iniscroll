@@ -1,15 +1,12 @@
 package com.example.ehiniscroll;
 
+import java.io.IOException;
 import java.net.URI;
 import javax.websocket.*;
 import java.util.concurrent.CountDownLatch;
 
 @ClientEndpoint
-public class WebSocketClient implements Runnable {
-    public void test()  {
-        System.out.println("TEST");
-
-    }
+public class WebSocketClient {
     Session userSession = null;
 
     public URI uri;
@@ -37,14 +34,15 @@ public class WebSocketClient implements Runnable {
         System.out.println("Message came from server! " + message);
     }
 
-    public void connectToServer(URI endpointURI){
+    public void connectToServer(URI endpointURI) throws DeploymentException {
 
         try {
            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
            container.connectToServer(this, endpointURI);
 
-        } catch (Exception e) {
+        } catch (DeploymentException | IOException e) {
             e.printStackTrace();
+            throw new DeploymentException("Connection Failed");
         }
     }
 
@@ -68,10 +66,4 @@ public class WebSocketClient implements Runnable {
         }
     }
 
-    @Override
-    public void run() {
-        test();
-        connectToServer(uri);
-        sendMessage();
-    }
 }

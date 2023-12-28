@@ -16,6 +16,8 @@ import java.net.URISyntaxException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import javax.websocket.DeploymentException;
+
 
 public class MainActivity extends AppCompatActivity {
     @Override
@@ -23,7 +25,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        URI dummyURI = null;
+        // initialize classes
+        final URI dummyURI;
         try {
             dummyURI = new URI("192.168.100");
         } catch (URISyntaxException e) {
@@ -32,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
         WebSocketClient webSocketClient = new WebSocketClient(dummyURI);
         BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
+        Thread messageSendingThread =  createMessageSendingThread(messageQueue, webSocketClient);
 
         // create views
         Button startButton = findViewById(R.id.startButton);
@@ -45,31 +49,31 @@ public class MainActivity extends AppCompatActivity {
         startButton.setOnClickListener(v -> {
             String ipAddress = ipAddressBox.getText().toString();
             showToast("Initializing Link");
-            setViewToConnecting(startButton, linkingBar, stopButton);
+            setViewsToConnecting(startButton, linkingBar, stopButton);
 
             try {
                 URI serverURI = new URI("ws://"+ ipAddress);
-
                 webSocketClient.setUri(serverURI);
-                Thread test_thread = new Thread(() -> webSocketClient.connectToServer(serverURI));
-                test_thread.start();
+                connectWebSocketInThread(webSocketClient, serverURI);
 
             } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
+                showToast("ERROR PLEASE TRY AGAIN: URISyntaxException");
             }
 
-            setViewToConnected(
+            setViewsToConnected(
                     ipAddressBox,
                     connectedTextView,
                     linkingBar,
                     invisibleTextView,
                     ipAddress);
 
-            startMessageSendingThread(messageQueue, webSocketClient);
+            messageSendingThread.start();
         });
 
         stopButton.setOnClickListener(v -> {
             // wifi logic here
+            webSocketClient.setUri(dummyURI);
+            messageSendingThread.interrupt();
 
             setViewsToMain(startButton, stopButton, connectedTextView, ipAddressBox);
 
@@ -77,11 +81,9 @@ public class MainActivity extends AppCompatActivity {
             verticalScrollView.fullScroll(ScrollView.FOCUS_UP);
         });
 
-        URI finalDummyURI = dummyURI;
-
         verticalScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             // Check if there is a vertical scroll
-            if (scrollY != oldScrollY && webSocketClient.uri != finalDummyURI) {
+            if (scrollY != oldScrollY && webSocketClient.uri != dummyURI) {
                 System.out.println("ScrollDetection Vertical scroll detected. ScrollY: " + scrollY);
                 try {
                     messageQueue.put("SOMETHING");
@@ -97,23 +99,33 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void startMessageSendingThread(BlockingQueue<String> messageQueue, WebSocketClient webSocketClient) {
-        // Start a background thread for sending messages
-        Thread messageSendingThread = new Thread(() -> {
-            while (true) {
-                try {
-
-                    String message = messageQueue.take();
-                    if (message != null)  {
-                        webSocketClient.sendMessage();
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    e.printStackTrace();
-                }
+    private void connectWebSocketInThread(WebSocketClient webSocketClient, URI serverURI) {
+        Thread test_thread = new Thread(() -> {
+            try {
+                webSocketClient.connectToServer(serverURI);
+            } catch (DeploymentException e) {
+                System.out.println("DeploymentException");
+                // INVALID IP ADDRESS CODE HERE
             }
         });
-        messageSendingThread.start();
+        test_thread.start();
+    }
+
+    private Thread createMessageSendingThread(BlockingQueue<String> messageQueue, WebSocketClient webSocketClient) {
+        // Start a background thread for sending messages
+        return new Thread(() -> {
+            try {
+                while (!Thread.interrupted()) {
+                    String message = messageQueue.take();
+                    if (message != null) {
+                        webSocketClient.sendMessage();
+                    }
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                e.printStackTrace();
+            }
+        });
     }
 
     private void showToast(String message) {
@@ -131,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         connectedTextView.setText("");
     }
 
-    private void setViewToConnecting(Button startButton,
+    private void setViewsToConnecting(Button startButton,
                                      ProgressBar linkingBar,
                                      Button stopButton) {
         startButton.setVisibility(View.INVISIBLE);
@@ -139,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
         stopButton.setVisibility(View.VISIBLE);
     }
 
-    private void setViewToConnected(EditText ipAddressBox,
+    private void setViewsToConnected(EditText ipAddressBox,
                                     TextView connectedTextView,
                                     ProgressBar linkingBar,
                                     TextView invisibleTextView,
