@@ -17,7 +17,7 @@ async def handler(websocket):
 async def main():
     load_dotenv()
     IP_ADDRESS = os.getenv('IP_ADDRESS')
-    PORT = 3001
+    PORT = 3000
 
     async with websockets.serve(handler, IP_ADDRESS, PORT):
         print(f"SERVER STARTED: RUNNING AT PORT {PORT}")
@@ -25,4 +25,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main()
+    asyncio.run(main())

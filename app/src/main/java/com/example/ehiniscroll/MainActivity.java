@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
             setViewsToConnecting(startButton, linkingBar, stopButton);
 
             try {
+                System.out.println("IP ADDRESS: " + ipAddress);
                 URI serverURI = new URI("ws://"+ ipAddress);
                 webSocketClient.setUri(serverURI);
                 connectWebSocketInThread(webSocketClient, serverURI);
@@ -66,14 +67,15 @@ public class MainActivity extends AppCompatActivity {
                     linkingBar,
                     invisibleTextView,
                     ipAddress);
+            if (messageSendingThread.getState() == Thread.State.NEW){
+                messageSendingThread.start();
+            }
 
-            messageSendingThread.start();
         });
 
         stopButton.setOnClickListener(v -> {
             // wifi logic here
-            webSocketClient.setUri(dummyURI);
-            messageSendingThread.interrupt();
+            webSocketClient.closeWebSocket();
 
             setViewsToMain(startButton, stopButton, connectedTextView, ipAddressBox);
 

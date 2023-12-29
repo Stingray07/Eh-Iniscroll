@@ -66,4 +66,14 @@ public class WebSocketClient {
         }
     }
 
+    public void closeWebSocket() {
+        if (userSession != null && userSession.isOpen()) {
+            try {
+                userSession.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }
