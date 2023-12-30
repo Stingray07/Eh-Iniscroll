@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
 
         startButton.setOnClickListener(v -> {
             String ipAddress = ipAddressBox.getText().toString();
-            showToast("Initializing Link");
             setViewsToConnecting(startButton, linkingBar, stopButton);
 
             try {
@@ -57,8 +56,9 @@ public class MainActivity extends AppCompatActivity {
                 webSocketClient.setUri(serverURI);
                 connectWebSocketInThread(webSocketClient, serverURI);
 
-            } catch (URISyntaxException e) {
-                showToast("ERROR PLEASE TRY AGAIN: URISyntaxException");
+            } catch (URISyntaxException | DeploymentException e) {
+                showToast("INVALID IP ADDRESS");
+                return;
             }
 
             setViewsToConnected(
@@ -101,16 +101,17 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void connectWebSocketInThread(WebSocketClient webSocketClient, URI serverURI) {
-        Thread test_thread = new Thread(() -> {
+    private void connectWebSocketInThread(WebSocketClient webSocketClient,
+                                          URI serverURI) throws DeploymentException{
+
+        Thread connectToWebSocketThread = new Thread(() -> {
             try {
                 webSocketClient.connectToServer(serverURI);
             } catch (DeploymentException e) {
                 System.out.println("DeploymentException");
-                // INVALID IP ADDRESS CODE HERE
             }
         });
-        test_thread.start();
+        connectToWebSocketThread.start();
     }
 
     private Thread createMessageSendingThread(BlockingQueue<String> messageQueue, WebSocketClient webSocketClient) {
@@ -131,26 +132,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        runOnUiThread(() -> {
+            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+        });
     }
+
 
     private void setViewsToMain(Button startButton,
             Button stopButton,
             TextView connectedTextView,
             EditText ipAddressBox) {
-        startButton.setVisibility(View.VISIBLE);
-        ipAddressBox.setVisibility(View.VISIBLE);
-        stopButton.setVisibility(View.INVISIBLE);
-        connectedTextView.setVisibility(View.INVISIBLE);
-        connectedTextView.setText("");
+        runOnUiThread(() -> {
+            startButton.setVisibility(View.VISIBLE);
+            ipAddressBox.setVisibility(View.VISIBLE);
+            stopButton.setVisibility(View.INVISIBLE);
+            connectedTextView.setVisibility(View.INVISIBLE);
+            connectedTextView.setText("");
+        });
     }
 
     private void setViewsToConnecting(Button startButton,
                                      ProgressBar linkingBar,
                                      Button stopButton) {
-        startButton.setVisibility(View.INVISIBLE);
-        linkingBar.setVisibility(View.VISIBLE);
-        stopButton.setVisibility(View.VISIBLE);
+        runOnUiThread(() -> {
+            startButton.setVisibility(View.INVISIBLE);
+            linkingBar.setVisibility(View.VISIBLE);
+            stopButton.setVisibility(View.VISIBLE);
+        });
     }
 
     private void setViewsToConnected(EditText ipAddressBox,
@@ -158,12 +166,14 @@ public class MainActivity extends AppCompatActivity {
                                     ProgressBar linkingBar,
                                     TextView invisibleTextView,
                                     String ipAddress) {
-        ipAddressBox.setVisibility(View.INVISIBLE);
-        connectedTextView.setText(
-                "Connected to " + ipAddress + "\n " +
-                "You can now scroll");
-        connectedTextView.setVisibility(View.VISIBLE);
-        linkingBar.setVisibility(View.INVISIBLE);
-        invisibleTextView.setVisibility(View.VISIBLE);
+        runOnUiThread(() -> {
+            ipAddressBox.setVisibility(View.INVISIBLE);
+            connectedTextView.setText(
+                    "Connected to " + ipAddress + "\n " +
+                            "You can now scroll");
+            connectedTextView.setVisibility(View.VISIBLE);
+            linkingBar.setVisibility(View.INVISIBLE);
+            invisibleTextView.setVisibility(View.VISIBLE);
+        });
     }
 }
