@@ -8,7 +8,7 @@ import java.util.concurrent.CountDownLatch;
 @ClientEndpoint
 public class WebSocketClient {
     Session userSession = null;
-
+    private boolean isConnected = false;
     public URI uri;
     private final CountDownLatch latch = new CountDownLatch(1);
     public WebSocketClient(URI uri) {
@@ -19,6 +19,7 @@ public class WebSocketClient {
     @OnOpen
     public void onOpen(Session usersession) {
         this.userSession = usersession;
+        isConnected = true;
         latch.countDown();
         System.out.println("Connected to WebSocket Server");
     }
@@ -27,6 +28,7 @@ public class WebSocketClient {
     public void onClose(Session userSession, CloseReason reason) {
         System.out.println("Closed WebSocket");
         this.userSession = null;
+        this.isConnected = false;
     }
 
     @OnMessage
@@ -36,18 +38,24 @@ public class WebSocketClient {
 
     public void connectToServer(URI endpointURI) throws DeploymentException {
 
-        try {
-           WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-           container.connectToServer(this, endpointURI);
+        Thread connectToServerThread = new Thread(() -> {
+            try {
+                WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+                container.connectToServer(this, endpointURI);
 
-        } catch (DeploymentException | IOException e) {
-            e.printStackTrace();
-            throw new DeploymentException("Connection Failed");
-        }
+            } catch (DeploymentException | IOException e) {
+                System.out.println("DEPLOYMENT EXECUTION");
+            }
+        });
+        connectToServerThread.start();
     }
 
     public void setUri(URI newURI){
         this.uri = newURI;
+    }
+
+    public boolean isConnected(){
+        return isConnected;
     }
 
     public void sendMessage() {
