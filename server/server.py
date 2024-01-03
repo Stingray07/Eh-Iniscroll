@@ -2,15 +2,18 @@ import asyncio
 import os
 import websockets
 from dotenv import load_dotenv
+from websockets.exceptions import ConnectionClosed
 
 
 async def handler(websocket):
-    print("Client Connected")
+    print("Client Connection Open")
 
-    while True:
-        message = await websocket.recv()
-        print(message)
-        await websocket.send(f"message from server: {message}")
+    try:
+        while True:
+            message = await websocket.recv()
+            print(message)
+    except ConnectionClosed:
+        print("Client Connection Closed")
 
 
 async def main():

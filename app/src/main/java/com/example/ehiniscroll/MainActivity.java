@@ -15,16 +15,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicReference;
-
-import javax.websocket.DeploymentException;
 
 
 public class MainActivity extends AppCompatActivity {
     private final WebSocketClient webSocketClient;
-    private final BlockingQueue<String> messageQueue;
+    private final BlockingQueue<Integer> messageQueue;
     private final Thread messageSendingThread;
-    private final AtomicReference<Boolean> isConnected;
     private final URI dummyURI;
 
     public MainActivity() {
@@ -33,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
             webSocketClient = new WebSocketClient(dummyURI);
             messageQueue = new LinkedBlockingQueue<>();
             messageSendingThread = createMessageSendingThread(messageQueue, webSocketClient);
-            isConnected = new AtomicReference<>(false);
+
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -45,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // create views
+        // Initialize views
         Button startButton = findViewById(R.id.startButton);
         Button stopButton = findViewById(R.id.stopButton);
         ProgressBar linkingBar = findViewById(R.id.loadingProgressBar);
@@ -59,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
                 invisibleTextView, connectedTextView));
 
         stopButton.setOnClickListener(v -> handleStopButtonClick(ipAddressBox, startButton, stopButton,
-                connectedTextView, verticalScrollView));
+                connectedTextView, verticalScrollView, linkingBar));
 
         verticalScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             handleScrollChange(scrollX, scrollY, oldScrollX, oldScrollY, verticalScrollView);
@@ -74,31 +70,35 @@ public class MainActivity extends AppCompatActivity {
         String ipAddress = ipAddressBox.getText().toString();
         setViewsToConnecting(startButton, linkingBar, stopButton);
 
+        // Try to connect to WebSocket Server
         try {
             System.out.println("IP ADDRESS: " + ipAddress);
             URI serverURI = new URI("ws://"+ ipAddress);
             webSocketClient.setUri(serverURI);
-            webSocketClient.connectToServer(serverURI);
-            isConnected.set(true);
-
-            if(isConnected.get()) {
-                setViewsToConnected(
-                        ipAddressBox,
-                        connectedTextView,
-                        linkingBar,
-                        invisibleTextView,
-                        ipAddress);
-                if (messageSendingThread.getState() == Thread.State.NEW){
-                    messageSendingThread.start();
+            webSocketClient.connectToServer(serverURI, new ConnectionCallback() {
+                @Override
+                public void onConnectSuccess() {
+                    setViewsToConnected(
+                            ipAddressBox,
+                            connectedTextView,
+                            linkingBar,
+                            invisibleTextView,
+                            ipAddress);
+                    if (messageSendingThread.getState() == Thread.State.NEW){
+                        messageSendingThread.start();
+                    }
                 }
-            }
+
+                @Override
+                public void onConnectError(String errorMessage) {
+                    showToast("Connection Failed");
+                    setViewsToMain(startButton, stopButton, connectedTextView, ipAddressBox, linkingBar);
+                }
+            });
 
         } catch (URISyntaxException e) {
             showToast("INVALID IP ADDRESS");
-        } catch (DeploymentException e) {
-            showToast("Connection Failed");
         }
-
     }
 
     private void handleScrollChange(int scrollX, int scrollY, int oldScrollX, int oldScrollY,
@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         if (scrollY != oldScrollY && !webSocketClient.uri.equals(dummyURI)) {
             System.out.println("ScrollDetection Vertical scroll detected. ScrollY: " + scrollY);
             try {
-                messageQueue.put("SOMETHING");
+                messageQueue.put(0);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -120,23 +120,21 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleStopButtonClick(EditText ipAddressBox, Button startButton,
                                        Button stopButton, TextView connectedTextView,
-                                       ScrollView verticalScrollView) {
-        // wifi logic here
+                                       ScrollView verticalScrollView, ProgressBar linkingBar) {
         webSocketClient.closeWebSocket();
 
-        setViewsToMain(startButton, stopButton, connectedTextView, ipAddressBox);
+        setViewsToMain(startButton, stopButton, connectedTextView, ipAddressBox, linkingBar);
 
         showToast("Link Stopped");
         verticalScrollView.fullScroll(ScrollView.FOCUS_UP);
     }
 
-    private Thread createMessageSendingThread(BlockingQueue<String> messageQueue, WebSocketClient webSocketClient) {
+    private Thread createMessageSendingThread(BlockingQueue<Integer> messageQueue, WebSocketClient webSocketClient) {
         // Start a background thread for sending messages
         return new Thread(() -> {
             try {
                 while (!Thread.interrupted()) {
-                    String message = messageQueue.take();
-                    if (message != null) {
+                    if (messageQueue.take() != null) {
                         webSocketClient.sendMessage();
                     }
                 }
@@ -157,13 +155,15 @@ public class MainActivity extends AppCompatActivity {
     private void setViewsToMain(Button startButton,
             Button stopButton,
             TextView connectedTextView,
-            EditText ipAddressBox) {
+            EditText ipAddressBox,
+            ProgressBar linkingBar) {
         runOnUiThread(() -> {
             startButton.setVisibility(View.VISIBLE);
             ipAddressBox.setVisibility(View.VISIBLE);
             stopButton.setVisibility(View.INVISIBLE);
             connectedTextView.setVisibility(View.INVISIBLE);
             connectedTextView.setText("");
+            linkingBar.setVisibility(View.INVISIBLE);
         });
     }
 

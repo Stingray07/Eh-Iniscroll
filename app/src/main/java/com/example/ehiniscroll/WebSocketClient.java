@@ -8,13 +8,12 @@ import java.util.concurrent.CountDownLatch;
 @ClientEndpoint
 public class WebSocketClient {
     Session userSession = null;
-    private boolean isConnected = false;
+    public boolean isConnected = false;
     public URI uri;
     private final CountDownLatch latch = new CountDownLatch(1);
     public WebSocketClient(URI uri) {
         this.uri = uri;
     }
-
 
     @OnOpen
     public void onOpen(Session usersession) {
@@ -36,15 +35,16 @@ public class WebSocketClient {
         System.out.println("Message came from server! " + message);
     }
 
-    public void connectToServer(URI endpointURI) throws DeploymentException {
+    public void connectToServer(URI endpointURI, ConnectionCallback callback) {
 
         Thread connectToServerThread = new Thread(() -> {
             try {
                 WebSocketContainer container = ContainerProvider.getWebSocketContainer();
                 container.connectToServer(this, endpointURI);
-
+                callback.onConnectSuccess();
             } catch (DeploymentException | IOException e) {
-                System.out.println("DEPLOYMENT EXECUTION");
+                e.printStackTrace();
+                callback.onConnectError(e.getMessage());
             }
         });
         connectToServerThread.start();
@@ -54,13 +54,8 @@ public class WebSocketClient {
         this.uri = newURI;
     }
 
-    public boolean isConnected(){
-        return isConnected;
-    }
-
     public void sendMessage() {
         try {
-            // Wait until the WebSocket connection is open
             latch.await();
 
             if (userSession != null && userSession.isOpen()) {
