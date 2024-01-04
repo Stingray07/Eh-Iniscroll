@@ -54,12 +54,12 @@ public class WebSocketClient {
         this.uri = newURI;
     }
 
-    public void sendMessage() {
+    public void sendMessage(Integer message) {
         try {
             latch.await();
 
             if (userSession != null && userSession.isOpen()) {
-                userSession.getAsyncRemote().sendText("TEST");
+                userSession.getAsyncRemote().sendText(message.toString());
             } else {
                 System.out.println("WebSocket session is not open");
             }

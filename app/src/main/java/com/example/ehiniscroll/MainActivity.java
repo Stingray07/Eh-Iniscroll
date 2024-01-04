@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
                 connectedTextView, verticalScrollView, linkingBar));
 
         verticalScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-            handleScrollChange(scrollX, scrollY, oldScrollX, oldScrollY, verticalScrollView);
+            handleScrollChange(scrollX, scrollY, oldScrollX, oldScrollY, verticalScrollView, startButton);
         });
 
     }
@@ -102,19 +102,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleScrollChange(int scrollX, int scrollY, int oldScrollX, int oldScrollY,
-                                    ScrollView verticalScrollView) {
+                                    ScrollView verticalScrollView, Button startButton) {
+
+        final int DOWN_THRESHOLD = 26000;
+        final int UP_THRESHOLD = 1000;
+        final int MIDDLE_Y = 12000;
+
         // Check if there is a vertical scroll
-        if (scrollY != oldScrollY && !webSocketClient.uri.equals(dummyURI)) {
+        if (!webSocketClient.uri.equals(dummyURI)) {
+            int direction = Integer.compare(scrollY, oldScrollY);
             System.out.println("ScrollDetection Vertical scroll detected. ScrollY: " + scrollY);
+
             try {
-                messageQueue.put(0);
+                messageQueue.put(direction);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        if (scrollY >= 22000) {
-            verticalScrollView.fullScroll(ScrollView.FOCUS_UP);
+        if (startButton.getVisibility() == View.INVISIBLE){
+            if (scrollY > DOWN_THRESHOLD || scrollY < UP_THRESHOLD) {
+                verticalScrollView.smoothScrollTo(0, MIDDLE_Y);
+            }
         }
     }
 
@@ -134,8 +143,9 @@ public class MainActivity extends AppCompatActivity {
         return new Thread(() -> {
             try {
                 while (!Thread.interrupted()) {
-                    if (messageQueue.take() != null) {
-                        webSocketClient.sendMessage();
+                    Integer message = messageQueue.take();
+                    if (message != null) {
+                        webSocketClient.sendMessage(message);
                     }
                 }
             } catch (InterruptedException e) {
