@@ -6,7 +6,6 @@ from websockets.exceptions import ConnectionClosed
 from pynput.mouse import Controller
 
 
-
 async def handler(websocket):
     print("Client Connection Open")
     mouse_controller = Controller()

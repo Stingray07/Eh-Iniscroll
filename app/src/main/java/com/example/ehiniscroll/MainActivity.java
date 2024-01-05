@@ -98,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
 
         } catch (URISyntaxException e) {
             showToast("INVALID IP ADDRESS");
+            setViewsToMain(startButton, stopButton, connectedTextView, ipAddressBox, linkingBar);
         }
     }
 
