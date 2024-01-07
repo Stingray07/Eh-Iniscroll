@@ -2,12 +2,14 @@ package com.example.ehiniscroll;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.ProgressBar;
+import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
             webSocketClient = new WebSocketClient(dummyURI);
             messageQueue = new LinkedBlockingQueue<>();
             messageSendingThread = createMessageSendingThread(messageQueue, webSocketClient);
-
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -50,25 +51,39 @@ public class MainActivity extends AppCompatActivity {
         EditText ipAddressBox = findViewById(R.id.editText);
         TextView connectedTextView = findViewById(R.id.connectedTextView);
 
+        Context context = getApplicationContext();
+        Scroller scroller = new Scroller(context);
+
         startButton.setOnClickListener(v -> handleStartButtonClick(
                 ipAddressBox, startButton, stopButton, linkingBar,
-                invisibleTextView, connectedTextView));
+                invisibleTextView, connectedTextView, scroller, verticalScrollView));
 
         stopButton.setOnClickListener(v -> handleStopButtonClick(ipAddressBox, startButton, stopButton,
                 connectedTextView, verticalScrollView, linkingBar));
 
         verticalScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-            handleScrollChange(scrollX, scrollY, oldScrollX, oldScrollY, verticalScrollView, startButton);
+            handleScrollChange(scrollX, scrollY, oldScrollX, oldScrollY,
+                    verticalScrollView, startButton, scroller);
         });
 
     }
 
     private void handleStartButtonClick(EditText ipAddressBox, Button startButton,
                                         Button stopButton, ProgressBar linkingBar,
-                                        TextView invisibleTextView, TextView connectedTextView
+                                        TextView invisibleTextView, TextView connectedTextView,
+                                        Scroller scroller, ScrollView scrollView
     ){
         String ipAddress = ipAddressBox.getText().toString();
         setViewsToConnecting(startButton, linkingBar, stopButton);
+
+        scroller.startScroll(0, 0, 0, -1000, 5000);
+        while (!scroller.isFinished()) {
+            System.out.println(scroller.getCurrX() + " " + scroller.getCurrY());
+            scroller.fling(0, 100, 0, -2, 0, 0, 0, 10000);
+
+            System.out.println("FLINGED");
+            scroller.computeScrollOffset();
+        }
 
         // Try to connect to WebSocket Server
         try {
@@ -103,8 +118,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleScrollChange(int scrollX, int scrollY, int oldScrollX, int oldScrollY,
-                                    ScrollView verticalScrollView, Button startButton) {
-
+                                    ScrollView verticalScrollView, Button startButton,
+                                    Scroller scroller) {
         final int DOWN_THRESHOLD = 26000;
         final int UP_THRESHOLD = 1000;
         final int MIDDLE_Y = 12000;
@@ -113,7 +128,6 @@ public class MainActivity extends AppCompatActivity {
         if (!webSocketClient.uri.equals(dummyURI)) {
             int direction = Integer.compare(scrollY, oldScrollY);
             System.out.println("ScrollDetection Vertical scroll detected. ScrollY: " + scrollY);
-
             try {
                 messageQueue.put(direction);
             } catch (InterruptedException e) {

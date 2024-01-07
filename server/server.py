@@ -14,9 +14,9 @@ async def handler(websocket):
             message = await websocket.recv()
             sensitivity = 1
             if message == "1":
-                scroll_amount = 1 * sensitivity
-            else:
                 scroll_amount = -1 * sensitivity
+            else:
+                scroll_amount = 1 * sensitivity
 
             mouse_controller.scroll(0, scroll_amount)
     except ConnectionClosed:
@@ -26,7 +26,7 @@ async def handler(websocket):
 async def main():
     load_dotenv()
     IP_ADDRESS = os.getenv('IP_ADDRESS')
-    PORT = 3001
+    PORT = 3000
 
     async with websockets.serve(handler, IP_ADDRESS, PORT):
         print(f"SERVER STARTED: RUNNING AT PORT {PORT}")
