@@ -2,13 +2,12 @@
 .gradle
 .idea
 /gradle
-gradle
+gradle/
 gradle.properties
 gradlew
 gradlew.bat
 local
 settings.gradle.kts
-build.gradle.kts
 /local.properties
 /.idea/caches
 /.idea/libraries
@@ -23,4 +22,5 @@ build.gradle.kts
 .cxx
 local.properties
 .env
-venv
+venv/
+build.gradle.kts
