@@ -37,6 +37,7 @@ public class WebSocketClient {
 
     public void connectToServer(URI endpointURI, ConnectionCallback callback) {
 
+        // Create a thread to connect to Websocket Server and do a callback
         Thread connectToServerThread = new Thread(() -> {
             try {
                 WebSocketContainer container = ContainerProvider.getWebSocketContainer();

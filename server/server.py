@@ -12,7 +12,11 @@ async def handler(websocket):
     try:
         while True:
             message = await websocket.recv()
-            sensitivity = 1
+
+            # Adjust sensitivity here
+            sensitivity = 0.075
+
+            # Check if scroll down or up
             if message == "1":
                 scroll_amount = -1 * sensitivity
             else:
@@ -28,6 +32,7 @@ async def main():
     IP_ADDRESS = os.getenv('IP_ADDRESS')
     PORT = 3000
 
+    # Open WebSocket Server at IP and Port
     async with websockets.serve(handler, IP_ADDRESS, PORT):
         print(f"SERVER STARTED: RUNNING AT PORT {PORT}")
         await asyncio.Future()  # run forever

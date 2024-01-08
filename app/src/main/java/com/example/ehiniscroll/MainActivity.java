@@ -2,14 +2,12 @@ package com.example.ehiniscroll;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.ProgressBar;
-import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,45 +49,35 @@ public class MainActivity extends AppCompatActivity {
         EditText ipAddressBox = findViewById(R.id.editText);
         TextView connectedTextView = findViewById(R.id.connectedTextView);
 
-        Context context = getApplicationContext();
-        Scroller scroller = new Scroller(context);
-
         startButton.setOnClickListener(v -> handleStartButtonClick(
                 ipAddressBox, startButton, stopButton, linkingBar,
-                invisibleTextView, connectedTextView, scroller, verticalScrollView));
+                invisibleTextView, connectedTextView));
 
         stopButton.setOnClickListener(v -> handleStopButtonClick(ipAddressBox, startButton, stopButton,
                 connectedTextView, verticalScrollView, linkingBar));
 
         verticalScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             handleScrollChange(scrollX, scrollY, oldScrollX, oldScrollY,
-                    verticalScrollView, startButton, scroller);
+                    verticalScrollView, startButton);
         });
 
     }
 
     private void handleStartButtonClick(EditText ipAddressBox, Button startButton,
                                         Button stopButton, ProgressBar linkingBar,
-                                        TextView invisibleTextView, TextView connectedTextView,
-                                        Scroller scroller, ScrollView scrollView
+                                        TextView invisibleTextView, TextView connectedTextView
     ){
         String ipAddress = ipAddressBox.getText().toString();
         setViewsToConnecting(startButton, linkingBar, stopButton);
 
-        scroller.startScroll(0, 0, 0, -1000, 5000);
-        while (!scroller.isFinished()) {
-            System.out.println(scroller.getCurrX() + " " + scroller.getCurrY());
-            scroller.fling(0, 100, 0, -2, 0, 0, 0, 10000);
-
-            System.out.println("FLINGED");
-            scroller.computeScrollOffset();
-        }
-
         // Try to connect to WebSocket Server
         try {
+            // Convert IP input to URI
             System.out.println("IP ADDRESS: " + ipAddress);
             URI serverURI = new URI("ws://"+ ipAddress);
             webSocketClient.setUri(serverURI);
+
+            // Connect to WebSocket Server
             webSocketClient.connectToServer(serverURI, new ConnectionCallback() {
                 @Override
                 public void onConnectSuccess() {
@@ -118,8 +106,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleScrollChange(int scrollX, int scrollY, int oldScrollX, int oldScrollY,
-                                    ScrollView verticalScrollView, Button startButton,
-                                    Scroller scroller) {
+                                    ScrollView verticalScrollView, Button startButton) {
         final int DOWN_THRESHOLD = 26000;
         final int UP_THRESHOLD = 1000;
         final int MIDDLE_Y = 12000;
@@ -135,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        // Scroll to middle of view if overscrolled
         if (startButton.getVisibility() == View.INVISIBLE){
             if (scrollY > DOWN_THRESHOLD || scrollY < UP_THRESHOLD) {
                 verticalScrollView.smoothScrollTo(0, MIDDLE_Y);
@@ -153,7 +141,8 @@ public class MainActivity extends AppCompatActivity {
         verticalScrollView.fullScroll(ScrollView.FOCUS_UP);
     }
 
-    private Thread createMessageSendingThread(BlockingQueue<Integer> messageQueue, WebSocketClient webSocketClient) {
+    private Thread createMessageSendingThread(BlockingQueue<Integer> messageQueue,
+                                              WebSocketClient webSocketClient) {
         // Start a background thread for sending messages
         return new Thread(() -> {
             try {
@@ -207,11 +196,12 @@ public class MainActivity extends AppCompatActivity {
                                     ProgressBar linkingBar,
                                     TextView invisibleTextView,
                                     String ipAddress) {
+        final String connectedText = "Connected to " + ipAddress + "\n " +
+                "You can now scroll";
+
         runOnUiThread(() -> {
             ipAddressBox.setVisibility(View.INVISIBLE);
-            connectedTextView.setText(
-                    "Connected to " + ipAddress + "\n " +
-                            "You can now scroll");
+            connectedTextView.setText(connectedText);
             connectedTextView.setVisibility(View.VISIBLE);
             linkingBar.setVisibility(View.INVISIBLE);
             invisibleTextView.setVisibility(View.VISIBLE);
