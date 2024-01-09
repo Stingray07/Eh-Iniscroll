@@ -52,6 +52,23 @@ pip install websocket-client
 
 3. The phone should now be connected with the computer, and you can start scrolling seamlessly.
 
+
+
+### Change Sensitivity and IP
+
+
+1. Open the server.py file
+
+2. At line 6, you should see something like this: 
+
+    ```python
+    # Adjust settings here
+    IP_ADDRESS = "192.168.100.4"
+    PORT = 3000
+    SENSITIVITY = 0.075
+
+3. Change this values as you like
+
 ## Technologies Used
 
 - Android SDK
