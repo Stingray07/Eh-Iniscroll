@@ -1,9 +1,12 @@
 import asyncio
-import os
 import websockets
-from dotenv import load_dotenv
 from websockets.exceptions import ConnectionClosed
 from pynput.mouse import Controller
+
+# Adjust settings here
+IP_ADDRESS = "192.168.100.4"
+PORT = 3000
+SENSITIVITY = 0.075
 
 
 async def handler(websocket):
@@ -13,14 +16,11 @@ async def handler(websocket):
         while True:
             message = await websocket.recv()
 
-            # Adjust sensitivity here
-            sensitivity = 0.075
-
             # Check if scroll down or up
             if message == "1":
-                scroll_amount = -1 * sensitivity
+                scroll_amount = -1 * SENSITIVITY
             else:
-                scroll_amount = 1 * sensitivity
+                scroll_amount = 1 * SENSITIVITY
 
             mouse_controller.scroll(0, scroll_amount)
     except ConnectionClosed:
@@ -28,13 +28,9 @@ async def handler(websocket):
 
 
 async def main():
-    load_dotenv()
-    IP_ADDRESS = os.getenv('IP_ADDRESS')
-    PORT = 3000
-
     # Open WebSocket Server at IP and Port
     async with websockets.serve(handler, IP_ADDRESS, PORT):
-        print(f"SERVER STARTED: RUNNING AT PORT {PORT}")
+        print(f"SERVER STARTED: RUNNING AT {IP_ADDRESS}:{PORT}")
         await asyncio.Future()  # run forever
 
 
